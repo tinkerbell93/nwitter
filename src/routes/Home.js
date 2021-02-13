@@ -1,8 +1,24 @@
 import { dbService } from 'fbase';
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function Home() {
   const [nweet, setNweet] = useState("");
+  const [nweets, setNweets] = useState([]);
+
+  const getNweets = async () => {
+    const dbNweets = await dbService.collection("nweets").get();
+    dbNweets.forEach(document => {
+      const nweetObject = {
+        ...document.data(),
+        id: document.id
+      }
+      setNweets(prev => [nweetObject, ...prev]);
+    });
+  }
+
+  useEffect(() => {
+    getNweets();
+  }, [])
 
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -24,6 +40,13 @@ export default function Home() {
         <input value={nweet} type="text" placeholder="what's on your mind?" maxLength={120} onChange={onChange} />
         <input type="submit" value="Nweet" />
       </form>
+      <ul>
+        {nweets.map(nweet => (
+          <li key={nweet.id}>
+            <h2>{nweet.nweet}</h2>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 } 
